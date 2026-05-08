@@ -10,15 +10,24 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
-from .config import APPLE_ID, APPLE_PASSWORD, log
+from .config import APPLE_ID, APPLE_PASSWORD, TELEGRAM_CHAT_ID, log
 from .rclone_utils import check_auth, run_backup
 from .reauth import feed_2fa_code, poll_for_2fa_prompt, start_reauth_in_thread
 from .scheduler import send_backup_result
 from .state import state
 
 
+def _authorized(update: Update) -> bool:
+    """Check if the message comes from the configured chat ID."""
+    if TELEGRAM_CHAT_ID and str(update.effective_chat.id) != TELEGRAM_CHAT_ID:
+        return False
+    return True
+
+
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command."""
+    if not _authorized(update):
+        return
     auth_ok, _ = await check_auth()
 
     last_backup = state.data.get("last_backup", "Nie")
@@ -45,6 +54,8 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /status command."""
+    if not _authorized(update):
+        return
     auth_ok, _ = await check_auth()
 
     last_backup = state.data.get("last_backup", "Nie")
@@ -65,6 +76,8 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def cmd_backup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /backup command."""
+    if not _authorized(update):
+        return
     msg = await update.message.reply_text("🔄 Backup wird gestartet...")
 
     auth_ok, _ = await check_auth()
@@ -78,6 +91,8 @@ async def cmd_backup(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def cmd_reauth(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /reauth command."""
+    if not _authorized(update):
+        return
     if not APPLE_ID or not APPLE_PASSWORD:
         await update.message.reply_text("❌ APPLE_ID oder APPLE_PASSWORD sind nicht gesetzt.")
         return
@@ -98,6 +113,8 @@ async def cmd_reauth(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def cmd_logs(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /logs command."""
+    if not _authorized(update):
+        return
     last_backup = state.data.get("last_backup", "Nie")
     files = state.data.get("last_backup_files", 0)
     errors = state.data.get("last_backup_errors", 0)
@@ -113,6 +130,10 @@ async def cmd_logs(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle inline keyboard callbacks (re-auth yes/no)."""
+    if not _authorized(update):
+        await update.callback_query.answer("Not authorized")
+        return
+
     query = update.callback_query
     await query.answer()
 
@@ -141,6 +162,8 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle plain text messages – used for 2FA code input."""
+    if not _authorized(update):
+        return
     if not state.pending_2fa:
         await update.message.reply_text(
             "ℹ️ Sende /start fuer eine Uebersicht der verfuegbaren Befehle."

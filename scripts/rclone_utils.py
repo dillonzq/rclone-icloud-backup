@@ -115,8 +115,6 @@ async def run_backup() -> tuple[int, str]:
         f"❌ Fehler: {errors}\n"
         f"📂 Ziel: <code>{BACKUP_DIR}</code>"
     )
-    if errors > 0:
-        summary += f"\n\n<pre>{stderr[-1000:]}</pre>"
 
     log.info("Backup done: %d files, %d errors, %s", files_copied, errors, elapsed_str)
 
