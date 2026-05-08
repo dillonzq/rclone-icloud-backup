@@ -2,7 +2,7 @@ FROM python:3.12-alpine
 
 LABEL org.opencontainers.image.title="iCloud Backup via rclone"
 LABEL org.opencontainers.image.description="Backup iCloud Photos to local storage using rclone with Telegram notifications and 2FA"
-LABEL org.opencontainers.image.source="https://github.com/pcace/icloud-bkp"
+LABEL org.opencontainers.image.source="https://github.com/pcace/rclone-icloud-backup"
 
 # Install rclone and dependencies
 RUN apk add --no-cache \

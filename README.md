@@ -15,7 +15,7 @@ With `INIT_AUTO=true` (set in `.env`), the bot sends a Telegram message to
 kick off 2FA setup — no terminal access needed. Otherwise run manually:
 
 ```bash
-docker-compose exec icloud-bkp rclone config
+docker-compose exec rclone-icloud-backup rclone config
 # Storage: iclouddrive → Service: photos → Name: icloudphotos
 ```
 
@@ -76,7 +76,7 @@ docker-compose exec icloud-bkp rclone config
 
 ## vs. docker-icloudpd
 
-| | docker-icloudpd | icloud-bkp |
+| | docker-icloudpd | rclone-icloud-backup |
 |---|---|---|
 | Backend | icloudpd (Python) | rclone (Go) |
 | Auth | Cookie-based, fragile | SRP + trust token (official Apple protocol) |
@@ -88,5 +88,5 @@ docker-compose exec icloud-bkp rclone config
 
 - **"Access iCloud Data on the Web"** must be ON (iPhone → Settings → Apple Account → iCloud)
 - **ADP enabled?** Supported. Approve on trusted device after 2FA.
-- **Auth failing?** Send `/reauth` in Telegram or run `docker-compose exec icloud-bkp rclone config reconnect icloudphotos:`
+- **Auth failing?** Send `/reauth` in Telegram or run `docker-compose exec rclone-icloud-backup rclone config reconnect icloudphotos:`
 - **Clear cache:** `rm -rf ./rclone-cache/*`

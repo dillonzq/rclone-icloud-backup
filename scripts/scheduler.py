@@ -179,7 +179,7 @@ async def ensure_rclone_config(app: Application):
                     "🆕 <b>Ersteinrichtung erforderlich</b>\n\n"
                     "Es wurde noch keine rclone-Konfiguration gefunden.\n\n"
                     "Bitte ausfuehren:\n\n"
-                    "<pre>docker-compose exec icloud-bkp rclone config</pre>\n\n"
+                    "<pre>docker-compose exec rclone-icloud-backup rclone config</pre>\n\n"
                     "Waehle dann:\n"
                     "• Storage: <code>iclouddrive</code>\n"
                     "• Service: <code>photos</code>\n"
