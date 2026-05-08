@@ -39,6 +39,7 @@ docker-compose exec rclone-icloud-backup rclone config
 | `BACKUP_DIR` | `/data/backup` | Target directory inside container |
 | `RCLONE_SOURCE` | — | iCloud path (empty = root with all libraries) |
 | `INIT_AUTO` | `false` | `true` = auto-create config + trigger 2FA via Telegram |
+| `SORT_BY_DATE` | `true` | `true` = organize into `YYYY/MM/DD/` folders |
 | `DRY_RUN` | `false` | `true` = simulate only, no transfer |
 | `MAX_TRANSFER` | — | Limit per run, e.g. `500M` (empty = unlimited) |
 | `BACKUP_INTERVAL_HOURS` | `6` | Backup frequency |

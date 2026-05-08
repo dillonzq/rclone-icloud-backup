@@ -14,8 +14,10 @@ from .config import (
     RCLONE_CONFIG_FILE,
     RCLONE_REMOTE,
     RCLONE_SOURCE,
+    SORT_BY_DATE,
     log,
 )
+from .reorganize import reorganize_by_date, STAGING_DIR
 from .state import state
 
 # Guard to prevent concurrent backup runs
@@ -83,9 +85,11 @@ async def _do_run_backup() -> tuple[int, str]:
     """Internal backup implementation."""
     start = datetime.now(timezone.utc)
 
-    # Build rclone args
+    # Build rclone args – copy to staging if date-sorted, otherwise direct
+    target_dir = str(STAGING_DIR) if SORT_BY_DATE else BACKUP_DIR
+
     rclone_args = [
-        "copy", f"{RCLONE_REMOTE}:{RCLONE_SOURCE}", BACKUP_DIR,
+        "copy", f"{RCLONE_REMOTE}:{RCLONE_SOURCE}", target_dir,
         "--iclouddrive-service", ICLOUD_SERVICE,
         "--ignore-existing",
         "--progress",
@@ -135,6 +139,14 @@ async def _do_run_backup() -> tuple[int, str]:
     )
 
     log.info("Backup done: %d files, %d errors, %s", files_copied, errors, elapsed_str)
+
+    # Reorganize by date if enabled
+    reorg_moved = 0
+    if SORT_BY_DATE and not DRY_RUN:
+        reorg_moved, reorg_errors = reorganize_by_date()
+        errors += reorg_errors
+        if reorg_moved > 0:
+            summary += f"\n📅 Sorted into {reorg_moved} files (YYYY/MM/DD)"
 
     state.data["last_backup"] = datetime.now(timezone.utc).isoformat()
     state.data["last_backup_files"] = files_copied
