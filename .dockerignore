@@ -1,0 +1,7 @@
+backup/
+rclone-config/
+rclone-cache/
+.env
+.git/
+*.pyc
+__pycache__/

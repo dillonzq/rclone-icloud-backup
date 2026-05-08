@@ -1,0 +1,17 @@
+# Environment
+.env
+
+# Backup data
+backup/
+
+# rclone config (contains secrets)
+rclone-config/
+
+# rclone cache
+rclone-cache/
+
+# Python
+__pycache__/
+*.pyc
+
+# Docker

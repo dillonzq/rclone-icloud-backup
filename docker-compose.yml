@@ -1,0 +1,31 @@
+services:
+  icloud-bkp:
+    build: .
+    container_name: icloud-bkp
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - TZ=${TZ:-Europe/Berlin}
+      - APPLE_ID=${APPLE_ID}
+      - APPLE_PASSWORD=${APPLE_PASSWORD:-}
+      - APPLE_PASSWORD_OBSCURED=${APPLE_PASSWORD_OBSCURED:-}
+      - RCLONE_REMOTE=${RCLONE_REMOTE:-icloudphotos}
+      - ICLOUD_SERVICE=${ICLOUD_SERVICE:-photos}
+      - BACKUP_DIR=${BACKUP_DIR:-/data/backup}
+      - RCLONE_SOURCE=${RCLONE_SOURCE:-}
+      - INIT_AUTO=${INIT_AUTO:-false}
+      - DRY_RUN=${DRY_RUN:-false}
+      - MAX_TRANSFER=${MAX_TRANSFER:-}
+      - BACKUP_INTERVAL_HOURS=${BACKUP_INTERVAL_HOURS:-6}
+      - AUTH_CHECK_INTERVAL_MINUTES=${AUTH_CHECK_INTERVAL_MINUTES:-60}
+      - FIRST_BACKUP_DELAY_MINUTES=${FIRST_BACKUP_DELAY_MINUTES:-5}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+    volumes:
+      # Local backup target – change left side to your desired path
+      - ./backup:/data/backup
+      # rclone config persistence (stores trust token, cookies, password)
+      - ./rclone-config:/root/.config/rclone
+      # rclone cache for fast subsequent runs (metadata caching)
+      - ./rclone-cache:/root/.cache/rclone
