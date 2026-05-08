@@ -38,14 +38,14 @@ async def scheduled_auth_check(context: ContextTypes.DEFAULT_TYPE):
         log.warning("Auth invalid – sending notification")
         keyboard = InlineKeyboardMarkup([
             [
-                InlineKeyboardButton("✅ Ja, neu authentifizieren", callback_data="reauth_yes"),
-                InlineKeyboardButton("❌ Nein, spaeter", callback_data="reauth_no"),
+                InlineKeyboardButton("✅ Yes, re-authenticate", callback_data="reauth_yes"),
+                InlineKeyboardButton("❌ Later", callback_data="reauth_no"),
             ]
         ])
         try:
             await context.bot.send_message(
                 chat_id=chat_id,
-                text="⚠️ <b>iCloud Authentifizierung ist abgelaufen!</b>\n\nNeu authentifizieren?",
+                text="⚠️ <b>iCloud auth expired!</b>\n\nRe-authenticate?",
                 reply_markup=keyboard,
                 parse_mode=ParseMode.HTML,
             )
@@ -73,7 +73,7 @@ async def scheduled_backup(context: ContextTypes.DEFAULT_TYPE):
             try:
                 await context.bot.send_message(
                     chat_id=chat_id,
-                    text="⚠️ Backup uebersprungen – Authentifizierung ist abgelaufen.\n\nNeu authentifizieren?",
+                    text="⚠️ Backup skipped – auth expired.\n\nRe-authenticate?",
                     reply_markup=keyboard,
                     parse_mode=ParseMode.HTML,
                 )
@@ -151,17 +151,16 @@ async def ensure_rclone_config(app: Application):
         if TELEGRAM_CHAT_ID:
             keyboard = InlineKeyboardMarkup([
                 [
-                    InlineKeyboardButton("✅ Ja, jetzt einrichten", callback_data="reauth_yes"),
-                    InlineKeyboardButton("❌ Spaeter", callback_data="reauth_no"),
+                    InlineKeyboardButton("✅ Yes, set up now", callback_data="reauth_yes"),
+                    InlineKeyboardButton("❌ Later", callback_data="reauth_no"),
                 ]
             ])
             try:
                 await app.bot.send_message(
                     chat_id=TELEGRAM_CHAT_ID,
                     text=(
-                        "🆕 <b>Ersteinrichtung</b>\n\n"
-                        "Initiale rclone-Konfiguration wurde erstellt.\n"
-                        "Jetzt 2FA-Code bereithalten und Authentifizierung starten:"
+                        "🆕 <b>Initial setup</b>\n\n"
+                        "Config created. Ready for 2FA:"
                     ),
                     reply_markup=keyboard,
                     parse_mode=ParseMode.HTML,
@@ -176,15 +175,15 @@ async def ensure_rclone_config(app: Application):
             await app.bot.send_message(
                 chat_id=TELEGRAM_CHAT_ID,
                 text=(
-                    "🆕 <b>Ersteinrichtung erforderlich</b>\n\n"
-                    "Es wurde noch keine rclone-Konfiguration gefunden.\n\n"
-                    "Bitte ausfuehren:\n\n"
-                    "<pre>docker-compose exec rclone-icloud-backup rclone config</pre>\n\n"
-                    "Waehle dann:\n"
+                    "🆕 <b>Initial setup required</b>\n\n"
+                    "No rclone config found.\n\n"
+                    "Run:\n\n"
+                    "<pre>docker compose exec rclone-icloud-backup rclone config</pre>\n\n"
+                    "Then:\n"
                     "• Storage: <code>iclouddrive</code>\n"
                     "• Service: <code>photos</code>\n"
-                    f"• Remote-Name: <code>{RCLONE_REMOTE}</code>\n\n"
-                    "Oder setze <code>INIT_AUTO=true</code> in der .env fuer automatische Einrichtung."
+                    f"• Remote name: <code>{RCLONE_REMOTE}</code>\n\n"
+                    "Or set <code>INIT_AUTO=true</code> in .env for automatic setup."
                 ),
                 parse_mode=ParseMode.HTML,
             )

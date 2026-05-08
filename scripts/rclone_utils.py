@@ -70,7 +70,7 @@ async def run_backup() -> tuple[int, str]:
 
     if _backup_running:
         log.warning("Backup already running – skipping")
-        return -1, "⏭ <b>Backup uebersprungen</b>\nEin Backup laeuft bereits."
+        return -1, "⏭ <b>Skipped</b>\nA backup is already in progress."
 
     _backup_running = True
     try:
@@ -127,11 +127,11 @@ async def _do_run_backup() -> tuple[int, str]:
     dry_tag = " 🧪 DRY-RUN" if DRY_RUN else ""
     limit_tag = f" (max {MAX_TRANSFER})" if MAX_TRANSFER else ""
     summary = (
-        f"📦 <b>Backup abgeschlossen</b>{dry_tag}{limit_tag}\n"
-        f"⏱ Dauer: {elapsed_str}\n"
-        f"📁 Neue Dateien: {files_copied}\n"
-        f"❌ Fehler: {errors}\n"
-        f"📂 Ziel: <code>{BACKUP_DIR}</code>"
+        f"📦 <b>Backup complete</b>{dry_tag}{limit_tag}\n"
+        f"⏱ Duration: {elapsed_str}\n"
+        f"📁 New files: {files_copied}\n"
+        f"❌ Errors: {errors}\n"
+        f"📂 Target: <code>{BACKUP_DIR}</code>"
     )
 
     log.info("Backup done: %d files, %d errors, %s", files_copied, errors, elapsed_str)

@@ -88,7 +88,7 @@ def _do_reauth_sync() -> tuple[bool, str]:
                 _active_pexpect_child = None
                 state.set_pending_2fa(False)
                 child.terminate(force=True)
-                return (False, "Zeitueberschreitung bei der 2FA-Eingabe (5 min)")
+                return (False, "2FA timeout (5 min)")
             except Exception:
                 pass
 
@@ -98,7 +98,7 @@ def _do_reauth_sync() -> tuple[bool, str]:
             _active_pexpect_child = None
             state.set_pending_2fa(False)
             child.terminate(force=True)
-            return (False, "Timeout beim Start der Re-Authentifizierung")
+            return (False, "Timeout starting re-auth")
 
         child.close()
         exit_code = child.exitstatus
@@ -111,7 +111,7 @@ def _do_reauth_sync() -> tuple[bool, str]:
             return (True, "")
         else:
             log.error("Re-authentication failed with exit code %d", exit_code)
-            return (False, f"Fehler beim Abschluss (Exit-Code: {exit_code})")
+            return (False, f"Re-auth failed (exit {exit_code})")
 
     except Exception as e:
         log.exception("Re-auth error")
@@ -141,8 +141,8 @@ async def poll_for_2fa_prompt(app: Application, chat_id: str, future: asyncio.Fu
             await app.bot.send_message(
                 chat_id=chat_id,
                 text=(
-                    "🔐 <b>2FA-Code benoetigt</b>\n\n"
-                    "Bitte sende deinen 6-stelligen Apple 2FA-Code (oder 'sms' fuer SMS-Code):"
+                    "🔐 <b>2FA code required</b>\n\n"
+                    "Send your 6-digit Apple 2FA code (or 'sms' for SMS):"
                 ),
                 parse_mode=ParseMode.HTML,
             )
@@ -157,12 +157,12 @@ async def feed_2fa_code(code: str) -> tuple[bool, str]:
     child = get_active_child()
 
     if not child or not child.isalive():
-        return (False, "Kein aktiver Authentifizierungsprozess.")
+        return (False, "No active auth process.")
 
     if not state.pending_2fa:
-        return (False, "Es wird gerade kein 2FA-Code erwartet.")
+        return (False, "No 2FA code expected right now.")
 
     log.info("Feeding 2FA code to rclone...")
     child.sendline(code)
 
-    return (True, "2FA-Code wurde an rclone uebermittelt.")
+    return (True, "2FA code sent to rclone.")

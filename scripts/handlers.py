@@ -30,8 +30,8 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     auth_ok, _ = await check_auth()
 
-    last_backup = state.data.get("last_backup", "Nie")
-    if last_backup and last_backup != "Nie":
+    last_backup = state.data.get("last_backup", "Never")
+    if last_backup and last_backup != "Never":
         try:
             dt = datetime.fromisoformat(last_backup)
             last_backup = dt.strftime("%d.%m.%Y %H:%M")
@@ -40,14 +40,14 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = (
         f"📷 <b>iCloud Photos Backup</b>\n\n"
-        f"🔐 Auth Status: {'✅ OK' if auth_ok else '❌ Abgelaufen'}\n"
-        f"📁 Letztes Backup: {last_backup}\n"
-        f"📊 Letzte neue Dateien: {state.data.get('last_backup_files', '—')}\n\n"
-        f"<b>Befehle:</b>\n"
-        f"/status – Status anzeigen\n"
-        f"/backup – Manuelles Backup starten\n"
-        f"/reauth – Neu authentifizieren\n"
-        f"/logs – Letzte Log-Eintraege"
+        f"🔐 Auth: {'✅ OK' if auth_ok else '❌ Expired'}\n"
+        f"📁 Last backup: {last_backup}\n"
+        f"📊 New files: {state.data.get('last_backup_files', '—')}\n\n"
+        f"<b>Commands:</b>\n"
+        f"/status – Status\n"
+        f"/backup – Start backup\n"
+        f"/reauth – Re-authenticate\n"
+        f"/logs – Last backup stats"
     )
     await update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
@@ -58,18 +58,18 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     auth_ok, _ = await check_auth()
 
-    last_backup = state.data.get("last_backup", "Nie")
+    last_backup = state.data.get("last_backup", "Never")
     files = state.data.get("last_backup_files", 0)
     errors = state.data.get("last_backup_errors", 0)
 
     text = (
-        f"🔐 <b>Auth:</b> {'✅ Gueltig' if auth_ok else '❌ Abgelaufen'}\n"
-        f"📁 <b>Letztes Backup:</b> {last_backup}\n"
-        f"📊 <b>Neue Dateien:</b> {files}\n"
-        f"⚠️ <b>Fehler:</b> {errors}\n"
+        f"🔐 <b>Auth:</b> {'✅ Valid' if auth_ok else '❌ Expired'}\n"
+        f"📁 <b>Last backup:</b> {last_backup}\n"
+        f"📊 <b>New files:</b> {files}\n"
+        f"⚠️ <b>Errors:</b> {errors}\n"
     )
     if not auth_ok:
-        text += "\n⚠️ <i>Auth ist abgelaufen. /reauth zum erneuern.</i>"
+        text += "\n⚠️ <i>Auth expired. Use /reauth to renew.</i>"
 
     await update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
@@ -78,11 +78,11 @@ async def cmd_backup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /backup command."""
     if not _authorized(update):
         return
-    msg = await update.message.reply_text("🔄 Backup wird gestartet...")
+    msg = await update.message.reply_text("🔄 Starting backup...")
 
     auth_ok, _ = await check_auth()
     if not auth_ok:
-        await msg.edit_text("❌ Authentifizierung ist abgelaufen. Bitte zuerst /reauth ausfuehren.")
+        await msg.edit_text("❌ Auth expired. Use /reauth first.")
         return
 
     files, summary = await run_backup()
@@ -94,18 +94,18 @@ async def cmd_reauth(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not _authorized(update):
         return
     if not APPLE_ID or not APPLE_PASSWORD:
-        await update.message.reply_text("❌ APPLE_ID oder APPLE_PASSWORD sind nicht gesetzt.")
+        await update.message.reply_text("❌ APPLE_ID or APPLE_PASSWORD not set.")
         return
 
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ Ja, neu authentifizieren", callback_data="reauth_yes"),
-            InlineKeyboardButton("❌ Nein, spaeter", callback_data="reauth_no"),
+            InlineKeyboardButton("✅ Yes, re-authenticate", callback_data="reauth_yes"),
+            InlineKeyboardButton("❌ Later", callback_data="reauth_no"),
         ]
     ])
     await update.message.reply_text(
-        "⚠️ <b>iCloud Authentifizierung erneuern?</b>\n\n"
-        "Du wirst nach deinem 2FA-Code gefragt.",
+        "⚠️ <b>Renew iCloud authentication?</b>\n\n"
+        "You will be asked for your 2FA code.",
         reply_markup=keyboard,
         parse_mode=ParseMode.HTML,
     )
@@ -115,15 +115,15 @@ async def cmd_logs(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /logs command."""
     if not _authorized(update):
         return
-    last_backup = state.data.get("last_backup", "Nie")
+    last_backup = state.data.get("last_backup", "Never")
     files = state.data.get("last_backup_files", 0)
     errors = state.data.get("last_backup_errors", 0)
 
     text = (
-        f"📋 <b>Letzte Backup-Logs</b>\n\n"
-        f"📅 Zeit: {last_backup}\n"
-        f"📁 Neue Dateien: {files}\n"
-        f"❌ Fehler: {errors}\n"
+        f"📋 <b>Last backup</b>\n\n"
+        f"📅 Time: {last_backup}\n"
+        f"📁 New files: {files}\n"
+        f"❌ Errors: {errors}\n"
     )
     await update.message.reply_text(text, parse_mode=ParseMode.HTML)
 
@@ -138,7 +138,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     if query.data == "reauth_yes":
-        await query.edit_message_text("🔄 Starte Re-Authentifizierung...")
+        await query.edit_message_text("🔄 Starting re-authentication...")
 
         future = await start_reauth_in_thread()
         await poll_for_2fa_prompt(context.application, str(query.message.chat_id), future)
@@ -149,15 +149,15 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             success, error = False, "Timeout"
 
         if success:
-            await query.message.reply_text("✅ Authentifizierung erfolgreich erneuert!")
+            await query.message.reply_text("✅ Authentication renewed!")
             await send_backup_result(query.message.chat_id, context.application)
         else:
             await query.message.reply_text(
-                f"❌ Authentifizierung fehlgeschlagen: {error}\nBitte /reauth erneut versuchen."
+                f"❌ Authentication failed: {error}\nTry /reauth again."
             )
 
     elif query.data == "reauth_no":
-        await query.edit_message_text("👌 OK, ich erinnere dich spaeter wieder.")
+        await query.edit_message_text("👌 OK, I'll remind you later.")
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -166,7 +166,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     if not state.pending_2fa:
         await update.message.reply_text(
-            "ℹ️ Sende /start fuer eine Uebersicht der verfuegbaren Befehle."
+            "ℹ️ Send /start for available commands."
         )
         return
 
@@ -178,7 +178,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         code = text
     else:
         await update.message.reply_text(
-            "⚠️ Bitte einen gueltigen 6-stelligen Code oder 'sms' senden."
+            "⚠️ Send a 6-digit code or 'sms'."
         )
         return
 
