@@ -1,5 +1,7 @@
 # iCloud Photos Backup — rclone + Telegram
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 Lightweight Docker service for incremental iCloud Photos backup to local storage.
 Uses [rclone's native iCloud backend](https://rclone.org/iclouddrive/).
 Telegram bot handles 2FA re-auth and sends backup summaries.
