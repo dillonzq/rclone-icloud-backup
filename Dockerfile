@@ -11,6 +11,7 @@ RUN apk add --no-cache \
     tzdata \
     ca-certificates \
     bash \
+    su-exec \
     && curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip \
     && unzip rclone-current-linux-amd64.zip \
     && cd rclone-*-linux-amd64 \
@@ -27,12 +28,24 @@ RUN pip install --no-cache-dir -r scripts/requirements.txt
 
 # Copy scripts
 COPY scripts/ /app/scripts/
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 # Create directories
-RUN mkdir -p /data/backup /root/.config/rclone /root/.cache/rclone
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
+    && ln -s /usr/local/bin/docker-entrypoint.sh /usr/local/bin/as-app-user \
+    && mkdir -p /data/backup /config/rclone /cache/rclone /home/appuser
 
-VOLUME ["/data/backup", "/root/.config/rclone"]
+VOLUME ["/data/backup", "/config/rclone", "/cache/rclone"]
 
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    PUID=1000 \
+    PGID=1000 \
+    UMASK=022 \
+    BACKUP_DIR=/data/backup \
+    RCLONE_CONFIG_DIR=/config/rclone \
+    RCLONE_CONFIG=/config/rclone/rclone.conf \
+    RCLONE_CACHE_DIR=/cache/rclone \
+    XDG_CACHE_HOME=/cache
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["python", "-m", "scripts.main"]

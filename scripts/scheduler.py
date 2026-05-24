@@ -178,7 +178,7 @@ async def ensure_rclone_config(app: Application):
                     "🆕 <b>Initial setup required</b>\n\n"
                     "No rclone config found.\n\n"
                     "Run:\n\n"
-                    "<pre>docker compose exec rclone-icloud-backup rclone config</pre>\n\n"
+                    "<pre>docker compose exec rclone-icloud-backup as-app-user rclone config</pre>\n\n"
                     "Then:\n"
                     "• Storage: <code>iclouddrive</code>\n"
                     "• Service: <code>photos</code>\n"

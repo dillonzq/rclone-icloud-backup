@@ -7,10 +7,17 @@ services:
       - .env
     environment:
       - TZ=${TZ:-Europe/Berlin}
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - UMASK=${UMASK:-022}
+      - CHOWN_RECURSIVE=${CHOWN_RECURSIVE:-false}
       - APPLE_ID=${APPLE_ID}
       - APPLE_PASSWORD=${APPLE_PASSWORD:-}
       - APPLE_PASSWORD_OBSCURED=${APPLE_PASSWORD_OBSCURED:-}
       - RCLONE_REMOTE=${RCLONE_REMOTE:-icloudphotos}
+      - RCLONE_CONFIG_DIR=${RCLONE_CONFIG_DIR:-/config/rclone}
+      - RCLONE_CONFIG=${RCLONE_CONFIG:-/config/rclone/rclone.conf}
+      - RCLONE_CACHE_DIR=${RCLONE_CACHE_DIR:-/cache/rclone}
       - ICLOUD_SERVICE=${ICLOUD_SERVICE:-photos}
       - BACKUP_DIR=${BACKUP_DIR:-/data/backup}
       - RCLONE_SOURCE=${RCLONE_SOURCE:-}
@@ -27,6 +34,6 @@ services:
       # Local backup target – change left side to your desired path
       - ./backup:/data/backup
       # rclone config persistence (stores trust token, cookies, password)
-      - ./rclone-config:/root/.config/rclone
+      - ./rclone-config:/config/rclone
       # rclone cache for fast subsequent runs (metadata caching)
-      - ./rclone-cache:/root/.cache/rclone
+      - ./rclone-cache:/cache/rclone

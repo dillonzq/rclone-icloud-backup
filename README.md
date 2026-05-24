@@ -15,7 +15,7 @@ With `INIT_AUTO=true` (set in `.env`), the bot sends a Telegram message to
 kick off 2FA setup — no terminal access needed. Otherwise run manually:
 
 ```bash
-docker-compose exec rclone-icloud-backup rclone config
+docker-compose exec rclone-icloud-backup as-app-user rclone config
 # Storage: iclouddrive → Service: photos → Name: icloudphotos
 ```
 
@@ -35,8 +35,14 @@ docker-compose exec rclone-icloud-backup rclone config
 | `APPLE_PASSWORD` | — | Apple ID password — prefer `APPLE_PASSWORD_OBSCURED` |
 | `APPLE_PASSWORD_OBSCURED` | — | Pre-obscured password (`rclone obscure PASS`). Use instead of `APPLE_PASSWORD` |
 | `RCLONE_REMOTE` | `icloudphotos` | rclone remote name |
+| `RCLONE_CONFIG_DIR` | `/config/rclone` | Directory for `rclone.conf` |
+| `RCLONE_CACHE_DIR` | `/cache/rclone` | rclone metadata cache directory |
 | `ICLOUD_SERVICE` | `photos` | `drive` or `photos` |
 | `BACKUP_DIR` | `/data/backup` | Target directory inside container |
+| `PUID` | `1000` | UID used to run the app after startup |
+| `PGID` | `1000` | GID used to run the app after startup |
+| `UMASK` | `022` | File creation mask for downloaded files |
+| `CHOWN_RECURSIVE` | `false` | `true` = recursively chown mounts on startup; useful once for old root-owned files |
 | `RCLONE_SOURCE` | — | iCloud path (empty = root with all libraries) |
 | `INIT_AUTO` | `false` | `true` = auto-create config + trigger 2FA via Telegram |
 | `SORT_BY_DATE` | `true` | `true` = organize into `YYYY/MM/DD/` folders |
@@ -48,6 +54,21 @@ docker-compose exec rclone-icloud-backup rclone config
 | `TELEGRAM_BOT_TOKEN` | — | From [@BotFather](https://t.me/BotFather) |
 | `TELEGRAM_CHAT_ID` | — | From [@userinfobot](https://t.me/userinfobot) |
 | `TZ` | `Europe/Berlin` | Timezone |
+
+## File Permissions
+
+The container starts as root only long enough to create the mounted directories,
+then runs the backup process as `PUID:PGID`. On Linux, get the host IDs with
+`id -u` and `id -g`, then put the numeric values in `.env`:
+
+```bash
+PUID=1000
+PGID=1000
+```
+
+If older runs already created root-owned files, set `CHOWN_RECURSIVE=true` once,
+start the container, then set it back to `false` to avoid scanning large backups
+on every start.
 
 ## Telegram Commands
 
@@ -72,8 +93,8 @@ docker-compose exec rclone-icloud-backup rclone config
 | Local Path | Container Path | Purpose |
 |---|---|---|
 | `./backup` | `/data/backup` | Downloaded photos & videos |
-| `./rclone-config` | `/root/.config/rclone` | rclone config (trust token, cookies) |
-| `./rclone-cache` | `/root/.cache/rclone` | Metadata cache |
+| `./rclone-config` | `/config/rclone` | rclone config (trust token, cookies) |
+| `./rclone-cache` | `/cache/rclone` | Metadata cache |
 
 ## vs. docker-icloudpd
 
@@ -89,5 +110,5 @@ docker-compose exec rclone-icloud-backup rclone config
 
 - **"Access iCloud Data on the Web"** must be ON (iPhone → Settings → Apple Account → iCloud)
 - **ADP enabled?** Supported. Approve on trusted device after 2FA.
-- **Auth failing?** Send `/reauth` in Telegram or run `docker-compose exec rclone-icloud-backup rclone config reconnect icloudphotos:`
+- **Auth failing?** Send `/reauth` in Telegram or run `docker-compose exec rclone-icloud-backup as-app-user rclone config reconnect icloudphotos:`
 - **Clear cache:** `rm -rf ./rclone-cache/*`

@@ -33,9 +33,10 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 # ---- Paths ----
-RCLONE_CONFIG_DIR = Path(os.environ.get("RCLONE_CONFIG_DIR", "/root/.config/rclone"))
-RCLONE_CONFIG_FILE = RCLONE_CONFIG_DIR / "rclone.conf"
-STATE_FILE = Path("/data/backup/.icloud-bkp-state.json")
+RCLONE_CONFIG_DIR = Path(os.environ.get("RCLONE_CONFIG_DIR", "/config/rclone"))
+RCLONE_CONFIG_FILE = Path(os.environ.get("RCLONE_CONFIG", str(RCLONE_CONFIG_DIR / "rclone.conf")))
+RCLONE_CONFIG_DIR = RCLONE_CONFIG_FILE.parent
+STATE_FILE = Path(os.environ.get("STATE_FILE", str(Path(BACKUP_DIR) / ".icloud-bkp-state.json")))
 
 # ---- Logging ----
 logging.basicConfig(
