@@ -33,11 +33,15 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 # Create directories
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
     && ln -s /usr/local/bin/docker-entrypoint.sh /usr/local/bin/as-app-user \
+    && chown -R root:root /app \
+    && find /app -type d -exec chmod 755 {} + \
+    && find /app -type f -exec chmod 644 {} + \
     && mkdir -p /data/backup /config/rclone /cache/rclone /home/appuser
 
 VOLUME ["/data/backup", "/config/rclone", "/cache/rclone"]
 
 ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
     PUID=1000 \
     PGID=1000 \
     UMASK=022 \
