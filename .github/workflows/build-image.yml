@@ -20,7 +20,7 @@ on:
         required: true
         default: "linux/amd64,linux/arm64"
       image_tag:
-        description: "Image tag; leave empty to derive from rclone version and patch"
+        description: "Image tag; leave empty to derive from rclone version and build date"
         required: false
         default: ""
       tag_latest:
@@ -60,25 +60,11 @@ jobs:
           version_slug="${RCLONE_VERSION#refs/tags/}"
           version_slug="${version_slug#v}"
           version_slug="$(printf '%s' "$version_slug" | sed -E 's/[^A-Za-z0-9_.-]+/-/g')"
-
-          patch_slug=""
-          if [ -n "$patch_urls" ]; then
-            non_pr_patch=false
-            for patch_url in $patch_urls; do
-              if [[ "$patch_url" =~ /pull/([0-9]+) ]]; then
-                patch_slug="${patch_slug}-pr${BASH_REMATCH[1]}"
-              else
-                non_pr_patch=true
-              fi
-            done
-            if [ "$non_pr_patch" = "true" ]; then
-              patch_slug="${patch_slug}-patched"
-            fi
-          fi
+          build_date="$(date -u +%Y%m%d)"
 
           tag="$IMAGE_TAG"
           if [ -z "$tag" ]; then
-            tag="rclone-${version_slug}${patch_slug}"
+            tag="rclone-${version_slug}-${build_date}"
           fi
 
           {
@@ -86,6 +72,7 @@ jobs:
             echo "tag=$tag"
             echo "rclone_version=$RCLONE_VERSION"
             echo "rclone_patch_urls=$patch_urls"
+            echo "build_date=$build_date"
             echo "go_version=${{ inputs.go_version }}"
             echo "platforms=$PLATFORMS"
           } >> "$GITHUB_OUTPUT"
@@ -115,6 +102,7 @@ jobs:
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.rclone.version=${{ steps.vars.outputs.rclone_version }}
             org.opencontainers.image.rclone.patch-urls=${{ steps.vars.outputs.rclone_patch_urls }}
+            org.opencontainers.image.build-date=${{ steps.vars.outputs.build_date }}
 
       - name: Build and push image
         id: build
