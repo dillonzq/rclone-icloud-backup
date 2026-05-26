@@ -10,7 +10,7 @@ Telegram bot handles 2FA re-auth and sends backup summaries.
 
 ```bash
 cp .env.example .env          # fill in your credentials
-docker-compose up -d          # build & start
+docker-compose up -d          # pull & start
 ```
 
 With `INIT_AUTO=true` (set in `.env`), the bot sends a Telegram message to
@@ -40,6 +40,7 @@ docker-compose exec rclone-icloud-backup as-app-user rclone config
 | `RCLONE_CONFIG_DIR` | `/config/rclone` | Directory for `rclone.conf` |
 | `RCLONE_CACHE_DIR` | `/cache/rclone` | rclone metadata cache directory |
 | `ICLOUD_SERVICE` | `photos` | `drive` or `photos` |
+| `ICLOUD_REGION` | `global` | `global` or `chinamainland` (requires patched rclone) |
 | `BACKUP_DIR` | `/data/backup` | Target directory inside container |
 | `PUID` | `1000` | UID used to run the app after startup |
 | `PGID` | `1000` | GID used to run the app after startup |

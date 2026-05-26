@@ -12,6 +12,7 @@ from .config import (
     APPLE_ID,
     APPLE_PASSWORD,
     APPLE_PASSWORD_OBSCURED,
+    ICLOUD_REGION,
     ICLOUD_SERVICE,
     INIT_AUTO,
     RCLONE_CONFIG_FILE,
@@ -129,6 +130,7 @@ def _create_initial_config():
         f"[{RCLONE_REMOTE}]\n"
         f"type = iclouddrive\n"
         f"service = {ICLOUD_SERVICE}\n"
+        f"region = {ICLOUD_REGION}\n"
         f"apple_id = {APPLE_ID}\n"
         f"password = {obscured}\n"
     )

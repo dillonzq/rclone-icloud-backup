@@ -1,24 +1,56 @@
+# syntax=docker/dockerfile:1.7
+
+ARG GO_VERSION=1.25
+ARG RCLONE_REPOSITORY=https://github.com/rclone/rclone.git
+ARG RCLONE_VERSION=v1.74.2
+ARG RCLONE_PATCH_URLS=https://github.com/rclone/rclone/pull/9399.patch
+
+FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine AS rclone-builder
+
+ARG RCLONE_REPOSITORY
+ARG RCLONE_VERSION
+ARG RCLONE_PATCH_URLS
+ARG TARGETOS
+ARG TARGETARCH
+
+RUN apk add --no-cache ca-certificates curl git patch
+
+WORKDIR /src/rclone
+
+RUN git init \
+    && git remote add origin "$RCLONE_REPOSITORY" \
+    && git fetch --depth 1 origin "$RCLONE_VERSION" \
+    && git checkout --detach FETCH_HEAD \
+    && patch_urls="$(printf '%s' "$RCLONE_PATCH_URLS" | tr ',;' '  ')" \
+    && patch_index=0 \
+    && for patch_url in $patch_urls; do \
+        patch_index=$((patch_index + 1)); \
+        curl -fsSL "$patch_url" -o "/tmp/rclone-${patch_index}.patch"; \
+        patch -p1 < "/tmp/rclone-${patch_index}.patch"; \
+    done \
+    && mkdir -p /out \
+    && CGO_ENABLED=0 GOOS="$TARGETOS" GOARCH="$TARGETARCH" \
+        go build -trimpath -ldflags "-s -w" -o /out/rclone .
+
 FROM python:3.12-alpine
+
+ARG RCLONE_VERSION
+ARG RCLONE_PATCH_URLS
 
 LABEL org.opencontainers.image.title="iCloud Backup via rclone"
 LABEL org.opencontainers.image.description="Backup iCloud Photos to local storage using rclone with Telegram notifications and 2FA"
-LABEL org.opencontainers.image.source="https://github.com/pcace/rclone-icloud-backup"
+LABEL org.opencontainers.image.source="https://github.com/dillonzq/rclone-icloud-backup"
+LABEL org.opencontainers.image.rclone.version="${RCLONE_VERSION}"
+LABEL org.opencontainers.image.rclone.patch-urls="${RCLONE_PATCH_URLS}"
 
-# Install rclone and dependencies
+# Install runtime dependencies
 RUN apk add --no-cache \
-    curl \
-    unzip \
     tzdata \
     ca-certificates \
     bash \
-    su-exec \
-    && curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip \
-    && unzip rclone-current-linux-amd64.zip \
-    && cd rclone-*-linux-amd64 \
-    && cp rclone /usr/local/bin/ \
-    && chmod +x /usr/local/bin/rclone \
-    && cd / \
-    && rm -rf rclone-current-linux-amd64.zip rclone-*-linux-amd64
+    su-exec
+
+COPY --from=rclone-builder /out/rclone /usr/local/bin/rclone
 
 WORKDIR /app
 
@@ -49,6 +81,7 @@ ENV PYTHONUNBUFFERED=1 \
     RCLONE_CONFIG_DIR=/config/rclone \
     RCLONE_CONFIG=/config/rclone/rclone.conf \
     RCLONE_CACHE_DIR=/cache/rclone \
+    ICLOUD_REGION=global \
     XDG_CACHE_HOME=/cache
 
 ENTRYPOINT ["docker-entrypoint.sh"]

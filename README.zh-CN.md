@@ -10,7 +10,7 @@ Telegram 机器人负责 2FA 重新认证，并发送备份结果摘要。
 
 ```bash
 cp .env.example .env          # 填写你的账号和配置
-docker-compose up -d          # 构建并启动
+docker-compose up -d          # 拉取镜像并启动
 ```
 
 设置 `INIT_AUTO=true` 后，机器人会通过 Telegram 发送消息来触发 2FA 初始化，无需进入终端。
@@ -40,6 +40,7 @@ docker-compose exec rclone-icloud-backup as-app-user rclone config
 | `RCLONE_CONFIG_DIR` | `/config/rclone` | `rclone.conf` 所在目录 |
 | `RCLONE_CACHE_DIR` | `/cache/rclone` | rclone 元数据缓存目录 |
 | `ICLOUD_SERVICE` | `photos` | `drive` 或 `photos` |
+| `ICLOUD_REGION` | `global` | `global` 或 `chinamainland`，后者需要带补丁的 rclone |
 | `BACKUP_DIR` | `/data/backup` | 容器内的备份目标目录 |
 | `PUID` | `1000` | 应用启动后使用的 UID |
 | `PGID` | `1000` | 应用启动后使用的 GID |

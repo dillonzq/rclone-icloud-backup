@@ -1,6 +1,6 @@
 services:
   rclone-icloud-backup:
-    build: .
+    image: ghcr.io/dillonzq/rclone-icloud-backup:latest
     container_name: rclone-icloud-backup
     restart: unless-stopped
     env_file:
@@ -19,6 +19,7 @@ services:
       - RCLONE_CONFIG=${RCLONE_CONFIG:-/config/rclone/rclone.conf}
       - RCLONE_CACHE_DIR=${RCLONE_CACHE_DIR:-/cache/rclone}
       - ICLOUD_SERVICE=${ICLOUD_SERVICE:-photos}
+      - ICLOUD_REGION=${ICLOUD_REGION:-global}
       - BACKUP_DIR=${BACKUP_DIR:-/data/backup}
       - RCLONE_SOURCE=${RCLONE_SOURCE:-}
       - INIT_AUTO=${INIT_AUTO:-false}

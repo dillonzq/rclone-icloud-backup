@@ -4,7 +4,6 @@ Configuration from environment variables and shared constants.
 
 import logging
 import os
-import sys
 from pathlib import Path
 
 # ---- Apple / iCloud ----
@@ -14,6 +13,7 @@ APPLE_PASSWORD_OBSCURED = os.environ.get("APPLE_PASSWORD_OBSCURED", "")
 
 RCLONE_REMOTE = os.environ.get("RCLONE_REMOTE", "icloudphotos")
 ICLOUD_SERVICE = os.environ.get("ICLOUD_SERVICE", "photos")
+ICLOUD_REGION = os.environ.get("ICLOUD_REGION", os.environ.get("RCLONE_ICLOUDDRIVE_REGION", "global"))
 
 # ---- Backup ----
 BACKUP_DIR = os.environ.get("BACKUP_DIR", "/data/backup")
